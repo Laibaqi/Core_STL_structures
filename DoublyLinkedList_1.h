@@ -16,20 +16,15 @@ private:
         Node(const T& val) : data(val), next(nullptr), prev(nullptr) {}
     };
 
-    Node* head;   // sentinel (dummy) head
-    Node* tail;   // sentinel (dummy) tail
+    Node* head; 
+    Node* tail;  
     int _size;
-
-    // ---------- Sort helpers (private) ----------
-    // These operate on a singly-linked chain using only `next` pointers.
-    // `prev` is ignored here and rebuilt by sort() after merging completes.
 
     template <typename Compare>
     static Node* mergeSort(Node* node, Compare cmp) {
-        // Base case: 0 or 1 nodes is already sorted.
+
         if (!node || !node->next) return node;
 
-        // Split the chain in half using slow/fast pointer technique.
         Node* slow = node;
         Node* fast = node->next;
         while (fast && fast->next) {
@@ -37,9 +32,8 @@ private:
             fast = fast->next->next;
         }
         Node* second = slow->next;
-        slow->next = nullptr;   // cut the chain into two halves
-
-        // Recursively sort each half, then merge.
+        slow->next = nullptr;   
+        
         Node* left  = mergeSort(node, cmp);
         Node* right = mergeSort(second, cmp);
         return merge(left, right, cmp);
@@ -47,7 +41,6 @@ private:
 
     template <typename Compare>
     static Node* merge(Node* a, Node* b, Compare cmp) {
-        // Dummy node simplifies the head case — no special-casing the first pick.
         Node dummy;
         Node* tail_ptr = &dummy;
 
@@ -61,19 +54,16 @@ private:
             }
             tail_ptr = tail_ptr->next;
         }
-        tail_ptr->next = (a ? a : b);   // attach whichever chain still has nodes
+        tail_ptr->next = (a ? a : b);
         return dummy.next;
     }
 
 public:
-    // ---------- Iterator ----------
-    // Bidirectional iterator so range-based for loops and STL algorithms work.
     class Iterator {
     private:
         Node* current;
         friend class DoublyLinkedList;
     public:
-        // STL iterator traits — lets std::distance, std::advance, etc. work
         using iterator_category = std::bidirectional_iterator_tag;
         using value_type        = T;
         using difference_type   = std::ptrdiff_t;
@@ -97,7 +87,6 @@ public:
     Iterator begin() const { return Iterator(head->next); }
     Iterator end()   const { return Iterator(tail); }
 
-    // ---------- Constructors / Destructor ----------
     DoublyLinkedList() : _size(0) {
         head = new Node();
         tail = new Node();
@@ -105,7 +94,6 @@ public:
         tail->prev = head;
     }
 
-    // Copy constructor (deep copy) — Rule of Three
     DoublyLinkedList(const DoublyLinkedList& other) : _size(0) {
         head = new Node();
         tail = new Node();
@@ -116,7 +104,6 @@ public:
         }
     }
 
-    // Copy assignment (deep copy) — Rule of Three
     DoublyLinkedList& operator=(const DoublyLinkedList& other) {
         if (this == &other) return *this;
         clear();
@@ -135,7 +122,6 @@ public:
         }
     }
 
-    // ---------- Modifiers ----------
     void push_back(const T& val) {
         Node* newNode = new Node(val);
         Node* lastReal = tail->prev;
@@ -181,7 +167,6 @@ public:
             throw std::out_of_range("Index out of bounds");
         }
 
-        // Walk from whichever end is closer — O(n/2) worst case
         Node* curr;
         if (index < _size / 2) {
             curr = head->next;
@@ -199,7 +184,6 @@ public:
         _size++;
     }
 
-    // Removes the FIRST occurrence of val. Returns true if removed.
     bool remove(const T& val) {
         Node* curr = head->next;
         while (curr != tail) {
@@ -227,7 +211,6 @@ public:
         _size = 0;
     }
 
-    // ---------- Accessors ----------
     T& front() {
         if (_size == 0) throw std::out_of_range("front() on empty list");
         return head->next->data;
@@ -248,7 +231,6 @@ public:
         return tail->prev->data;
     }
 
-    // Returns iterator to first match, or end() if not found
     Iterator find(const T& val) const {
         for (Node* curr = head->next; curr != tail; curr = curr->next) {
             if (curr->data == val) return Iterator(curr);
@@ -259,10 +241,6 @@ public:
     int  size()  const { return _size; }
     bool empty() const { return _size == 0; }
 
-    // ---------- Sort ----------
-    // Merge sort on the linked list: O(n log n) time, O(log n) stack space.
-    // Works by rewiring node pointers — no copying of T values, no extra arrays.
-    // Uses operator< on T by default; pass a comparator for custom orderings.
     void sort() {
         sort([](const T& a, const T& b) { return a < b; });
     }
@@ -270,18 +248,14 @@ public:
     template <typename Compare>
     void sort(Compare cmp) {
         if (_size < 2) return;
-
-        // Step 1: detach real nodes from sentinels into a plain singly-linked
-        // chain using only `next` pointers. We'll rebuild `prev` at the end.
+        
         Node* chain = head->next;
-        tail->prev->next = nullptr;     // terminate the chain
-        head->next = tail;              // temporarily empty the list
+        tail->prev->next = nullptr;  
+        head->next = tail;           
         tail->prev = head;
 
-        // Step 2: recursively merge-sort the chain.
         chain = mergeSort(chain, cmp);
 
-        // Step 3: re-attach to sentinels and rebuild prev pointers in one pass.
         Node* prev = head;
         Node* curr = chain;
         while (curr) {
@@ -305,4 +279,4 @@ public:
     }
 };
 
-#endif // DOUBLY_LINKED_LIST_H
+#endif

@@ -1,0 +1,11 @@
+*.exe
+*.o
+*.out
+.vscode/
+vector
+stack
+queue
+list
+bst
+hashing
+bench
